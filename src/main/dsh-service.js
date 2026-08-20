@@ -74,7 +74,9 @@ class DshService extends EventEmitter {
     this.child = spawn(nodeExe, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
-      env: { ...process.env },
+      // 打上唯一标记：桌面版内核进程可据此与网页版/其他实例精确区分，
+      // 避免后续清理进程时误杀正在开发它的 agent 自己。
+      env: { ...process.env, DSH_DESKTOP: '1', DSH_DESKTOP_PARENT_PID: String(process.pid) },
     });
 
     this.child.stdout.on('data', (d) => this.#scanStdout(d));

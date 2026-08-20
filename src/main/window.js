@@ -24,17 +24,18 @@ function isLoopback(u) {
   }
 }
 
-function createMainWindow(url, { onCloseRequest } = {}) {
+function createMainWindow(url, { onCloseRequest, onFocusChanged } = {}) {
   const win = new BrowserWindow({
     width: 1280,
     height: 840,
     minWidth: 980,
     minHeight: 640,
-    title: 'DeepSeek',
+    title: 'DeepSeek Harness Desktop',
     backgroundColor: '#0d1117',
     icon: iconPath(),
     show: false,
     autoHideMenuBar: true,
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
@@ -46,6 +47,13 @@ function createMainWindow(url, { onCloseRequest } = {}) {
 
   win.loadURL(url);
   win.once('ready-to-show', () => win.show());
+
+  // 推送最大化状态给渲染进程，用于切换「最大化 / 还原」按钮图标。
+  const sendMaxState = () => {
+    if (!win.isDestroyed()) win.webContents.send('window:maximized-changed', win.isMaximized());
+  };
+  win.on('maximize', sendMaxState);
+  win.on('unmaximize', sendMaxState);
 
   // 新开窗口：回环地址放行（SPA 内部跳转），外部链接交给系统浏览器。
   win.webContents.setWindowOpenHandler(({ url: target }) => {
@@ -63,6 +71,12 @@ function createMainWindow(url, { onCloseRequest } = {}) {
   win.on('close', (event) => {
     if (typeof onCloseRequest === 'function') onCloseRequest(event, win);
   });
+
+  // 窗口聚焦状态（用于系统通知：后台时才提醒）。
+  if (typeof onFocusChanged === 'function') {
+    win.on('focus', () => onFocusChanged(true));
+    win.on('blur', () => onFocusChanged(false));
+  }
 
   return win;
 }

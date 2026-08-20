@@ -4,6 +4,7 @@ const { app, globalShortcut, ipcMain, dialog, Notification } = require('electron
 const { DshService } = require('./dsh-service');
 const { createMainWindow } = require('./window');
 const { createTray } = require('./tray');
+const { TaskNotifications } = require('./notifications');
 
 const APP_ID = 'com.deepseek.desktop';
 const gotLock = app.requestSingleInstanceLock();
@@ -25,6 +26,8 @@ if (!gotLock) {
     win.focus();
   };
 
+  const notifications = new TaskNotifications({ logger: console, onActivate: showWindow });
+
   const toggleWindow = () => {
     if (!win || win.isDestroyed()) return;
     if (win.isVisible() && !win.isMinimized()) win.hide();
@@ -45,10 +48,15 @@ if (!gotLock) {
     dsh = new DshService({ logger: console });
     dsh.on('ready', (url) => {
       console.log(`[app] dsh 就绪: ${url}`);
+      notifications.setBaseUrl(url);
+      notifications.start();
       if (win && !win.isDestroyed()) {
         win.loadURL(url).catch(() => {});
       } else {
-        win = createMainWindow(url, { onCloseRequest });
+        win = createMainWindow(url, {
+          onCloseRequest,
+          onFocusChanged: (focused) => notifications.setFocused(focused)
+        });
         if (!tray) tray = createTray({ onShow: toggleWindow, onQuit: quitApp });
       }
     });
@@ -93,6 +101,7 @@ if (!gotLock) {
   app.on('before-quit', () => {
     isQuitting = true;
     globalShortcut.unregisterAll();
+    notifications.stop();
   });
 
   app.on('will-quit', (event) => {

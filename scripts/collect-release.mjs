@@ -16,20 +16,20 @@ if (!existsSync(distDir)) {
 }
 
 const files = readdirSync(distDir);
-const setup = files.find((f) => /^DeepSeek-Setup-.*\.exe$/.test(f));
+const setup = files.find((f) => /^DeepSeek-Harness-Desktop-Setup-.*\.exe$/.test(f));
 const zip = files.find((f) => f.endsWith('.zip'));
 
 if (!setup) {
-  console.error('[collect-release] 未找到安装包（DeepSeek-Setup-*.exe）');
+  console.error('[collect-release] 未找到安装包（DeepSeek-Harness-Desktop-Setup-*.exe）');
   process.exit(1);
 }
 
 rmSync(releaseDir, { recursive: true, force: true });
 mkdirSync(releaseDir, { recursive: true });
 
-cpSync(join(distDir, setup), join(releaseDir, `DeepSeek-Setup-${version}.exe`));
+cpSync(join(distDir, setup), join(releaseDir, `DeepSeek-Harness-Desktop-Setup-${version}.exe`));
 if (zip) {
-  cpSync(join(distDir, zip), join(releaseDir, `DeepSeek-Portable-${version}.zip`));
+  cpSync(join(distDir, zip), join(releaseDir, `DeepSeek-Harness-Desktop-Portable-${version}.zip`));
 }
 
 console.log('[collect-release] 完成，产物：');

@@ -50,4 +50,8 @@ mkdirSync(join(outDir, 'runtime', 'node_modules', '@deepseek-ai'), { recursive: 
 cpSync(nodeExe, join(outDir, 'node.exe'));
 cpSync(installDir, outDsh, { recursive: true, dereference: true });
 
+// 注意：自定义插件（plugins/dsh-ui-balance）通过 scripts/install-plugin.mjs 装进
+// 开发态 dsh 的依赖树（含 bundle 激活条目）。上面 cpSync(installDir, outDsh) 会把
+// 插件连同激活条目一起拷进内核，因此这里无需再单独处理插件。
+
 console.log('[prepare-kernel] 完成');

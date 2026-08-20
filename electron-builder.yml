@@ -1,5 +1,5 @@
 appId: com.deepseek.desktop
-productName: DeepSeek
+productName: DeepSeek Harness Desktop
 copyright: Copyright © 2026 deepseek-desktop
 directories:
   output: dist
@@ -12,6 +12,8 @@ extraResources:
     to: kernel
     filter:
       - "**/*"
+  - from: build/icon.png
+    to: icon.png
 asar: true
 win:
   target:
@@ -25,5 +27,5 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: DeepSeek
-  artifactName: DeepSeek-Setup-${version}.${ext}
+  shortcutName: DeepSeek Harness Desktop
+  artifactName: DeepSeek-Harness-Desktop-Setup-${version}.${ext}
