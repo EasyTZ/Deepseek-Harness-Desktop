@@ -18,18 +18,42 @@
 - **余额查询**：每次对话后在回复下方显示 DeepSeek 账户余额
 - **系统通知**：任务完成 / 待确认时后台弹通知（窗口失焦时）
 
-## 📦 下载与使用
+## 📥 下载与安装
 
-最新安装包与绿色版请到本仓库的 [Releases](../../releases) 页面下载：
+到本仓库的 [Releases](../../releases) 页面下载最新版，两种形态任选其一：
 
-| 产物 | 说明 |
+| 产物 | 用法 |
 |---|---|
-| `DeepSeek-Harness-Desktop-Setup-<版本>.exe` | NSIS 安装包，可选安装目录，装完从开始菜单 / 桌面启动（推荐） |
-| `DeepSeek-Harness-Desktop-Portable-<版本>.zip` | 绿色版，解压一次后直接运行 `DeepSeek Harness Desktop.exe`，之后每次秒开 |
+| `DeepSeek-Harness-Desktop-Setup-<版本>.exe` | **安装包（推荐）**：双击 → 选安装目录 → 装完从开始菜单 / 桌面快捷方式启动 |
+| `DeepSeek-Harness-Desktop-Portable-<版本>.zip` | **绿色版**：解压 zip，双击 `DeepSeek Harness Desktop.exe` 直接运行 |
 
-> 系统要求：Windows 10 / 11 x64。首次启动会拉起本地服务，稍等几秒窗口即出现。
+> 系统要求：Windows 10 / 11 x64。**无需预装 Node.js 或 dsh**，程序自包含内核，双击即用。
 
-## 🛠 开发
+## 🚀 使用指南
+
+### 首次使用
+
+1. 双击启动，窗口稍等几秒出现（首次要拉起本地服务）；
+2. 在 **设置 → 模型** 里配置 DeepSeek API Key（或手动写入 `~/.dsh/.credentials.yaml` 的 `DEEPSEEK_API_KEY`）。
+
+### 日常操作
+
+- **关闭窗口**：不会退出，而是最小化到**系统托盘**；右键托盘图标可「显示 / 隐藏」或「退出」；
+- **全局快捷键**：`Ctrl + Alt + Space` 随时显示 / 隐藏窗口；
+- **余额**：每次对话结束后，AI 回复下方会显示当前 DeepSeek 账户余额；
+- **系统通知**：窗口在后台时，任务完成 / 需要确认会弹系统通知，点通知即可回到窗口；
+- **会话共享**：与网页版 / CLI 版共享 `~/.dsh` 里的会话和凭据，换入口也能接着聊。
+
+### 常见问题
+
+- **窗口关闭后去哪了？** 在右下角系统托盘，点托盘图标即可找回。
+- **余额显示「查询失败」？** 检查是否已配置 `DEEPSEEK_API_KEY`。
+
+---
+
+## 🧑‍💻 开发者文档
+
+### 开发
 
 前置：Node.js ≥ 22、npm（首次会联网下载 Electron 二进制，国内可用 npmmirror 镜像，已写入 `.npmrc`）。
 
@@ -65,7 +89,7 @@ npm start                # 启动桌面应用
 
 > 桌面版 spawn 的内核进程会携带 `DSH_DESKTOP=1` 与 `DSH_DESKTOP_PARENT_PID=<electron 主进程 PID>` 标记，便于与 Web 版内核精确区分、避免误杀。
 
-## 📦 构建与打包
+### 构建与打包
 
 ```powershell
 npm run dist             # prepare-kernel → electron-builder → collect-release
@@ -80,7 +104,7 @@ npm run dist             # prepare-kernel → electron-builder → collect-relea
 
 > 注意：内核的 `node_modules` 必须放在 `kernel/runtime/` 子目录里——electron-builder 会硬排除 `from` 根部的 `node_modules` 目录，但子目录里的不受影响。
 
-## 🏗 架构
+### 架构
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -98,7 +122,7 @@ npm run dist             # prepare-kernel → electron-builder → collect-relea
 
 内核是**自包含**的：打包时把 `node.exe` 和完整 `@deepseek-ai/dsh` 依赖树一起塞进安装包（`resources/kernel/`），用户机器无需预装 Node 或 dsh。
 
-## 📁 目录结构
+### 目录结构
 
 ```
 dsDesktop/
