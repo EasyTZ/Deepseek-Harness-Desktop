@@ -1,0 +1,20 @@
+{
+  "name": "deepseek-desktop",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 桌面版 —— 以 dsh 为内核的 Windows 桌面应用",
+  "main": "src/main/index.js",
+  "author": "deepseek-desktop",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "icon": "node scripts/gen-icon.mjs",
+    "prepare-kernel": "node scripts/prepare-kernel.mjs",
+    "dist": "node scripts/prepare-kernel.mjs && electron-builder --win && node scripts/collect-release.mjs",
+    "dist:dir": "node scripts/prepare-kernel.mjs && electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
+  }
+}

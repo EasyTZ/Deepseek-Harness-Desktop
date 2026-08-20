@@ -1,0 +1,6 @@
+node_modules/
+kernel/
+dist/
+_smoke/
+release/
+*.log

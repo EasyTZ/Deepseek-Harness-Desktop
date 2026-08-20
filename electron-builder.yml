@@ -1,0 +1,29 @@
+appId: com.deepseek.desktop
+productName: DeepSeek
+copyright: Copyright © 2026 deepseek-desktop
+directories:
+  output: dist
+  buildResources: build
+files:
+  - src/**/*
+  - package.json
+extraResources:
+  - from: kernel
+    to: kernel
+    filter:
+      - "**/*"
+asar: true
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: DeepSeek
+  artifactName: DeepSeek-Setup-${version}.${ext}
