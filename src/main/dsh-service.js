@@ -1,6 +1,6 @@
 'use strict';
 
-const { spawn, execFile } = require('node:child_process');
+const { spawn, execFile, execFileSync } = require('node:child_process');
 const { EventEmitter } = require('node:events');
 const fs = require('node:fs');
 const http = require('node:http');
@@ -51,16 +51,24 @@ class DshService extends EventEmitter {
   }
 
   #guessDevBin() {
-    const candidates = [
+    // 动态查找全局 dsh：优先用 `npm root -g` 拿真实全局 node_modules 路径，
+    // 再回退到几个常见位置，尽量覆盖各种安装方式。
+    const candidates = [];
+    try {
+      const npmRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8', windowsHide: true, shell: true }).trim();
+      if (npmRoot) candidates.push(path.join(npmRoot, '@deepseek-ai', 'dsh', 'lib', 'bin.js'));
+    } catch {}
+    candidates.push(
       path.join(process.env.APPDATA || '', 'npm', 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js'),
       'D:\\nodejs\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js',
       'C:\\Program Files\\nodejs\\node_modules\\@deepseek-ai\\dsh\\lib\\bin.js',
-    ];
+    );
     for (const c of candidates) {
       if (fs.existsSync(c)) return c;
     }
     throw new Error(
-      '找不到 dsh 安装目录。请设置环境变量 DSH_BIN_JS 指向 dsh/lib/bin.js，或先安装 DeepSeek Harness。'
+      '找不到 dsh 安装目录。请先全局安装 DeepSeek Harness（npm install -g @deepseek-ai/dsh），' +
+      '或设置环境变量 DSH_BIN_JS 指向 dsh/lib/bin.js。'
     );
   }
 

@@ -1,6 +1,7 @@
 // 把 node.exe 与完整 dsh 依赖树拷贝到 kernel/ 暂存目录，供 electron-builder
 // 的 extraResources 打入安装包，实现自包含内核。
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -14,11 +15,16 @@ function findDshInstall() {
   if (process.env.DSH_INSTALL_DIR && existsSync(process.env.DSH_INSTALL_DIR)) {
     return process.env.DSH_INSTALL_DIR;
   }
-  const candidates = [
-    'D:\\nodejs\\node_modules\\@deepseek-ai\\dsh',
+  const candidates = [];
+  try {
+    const npmRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8', windowsHide: true, shell: true }).trim();
+    if (npmRoot) candidates.push(join(npmRoot, '@deepseek-ai', 'dsh'));
+  } catch {}
+  candidates.push(
     join(process.env.APPDATA || '', 'npm', 'node_modules', '@deepseek-ai', 'dsh'),
+    'D:\\nodejs\\node_modules\\@deepseek-ai\\dsh',
     'C:\\Program Files\\nodejs\\node_modules\\@deepseek-ai\\dsh',
-  ];
+  );
   for (const c of candidates) {
     if (existsSync(c)) return c;
   }
@@ -29,8 +35,9 @@ function findNodeExe() {
   if (process.env.DSH_NODE_EXE && existsSync(process.env.DSH_NODE_EXE)) {
     return process.env.DSH_NODE_EXE;
   }
+  // 优先用当前运行的 node（一定存在），回退到常见位置。
   const candidates = [
-    'D:\\nodejs\\node.exe',
+    process.execPath,
     'C:\\Program Files\\nodejs\\node.exe',
   ];
   for (const c of candidates) {

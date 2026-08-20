@@ -2,6 +2,7 @@
 // 这样开发态（dsh web / npm start）能加载插件；prepare-kernel 打包时把整个 dsh 目录
 // 拷进内核，插件与激活条目随之自动进入 release —— 开发态先有、打包后有，顺序正确。
 import { cpSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,11 +12,16 @@ function findDshInstall() {
   if (process.env.DSH_INSTALL_DIR && existsSync(process.env.DSH_INSTALL_DIR)) {
     return process.env.DSH_INSTALL_DIR;
   }
-  const candidates = [
-    'D:\\nodejs\\node_modules\\@deepseek-ai\\dsh',
+  const candidates = [];
+  try {
+    const npmRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8', windowsHide: true, shell: true }).trim();
+    if (npmRoot) candidates.push(join(npmRoot, '@deepseek-ai', 'dsh'));
+  } catch {}
+  candidates.push(
     join(process.env.APPDATA || '', 'npm', 'node_modules', '@deepseek-ai', 'dsh'),
+    'D:\\nodejs\\node_modules\\@deepseek-ai\\dsh',
     'C:\\Program Files\\nodejs\\node_modules\\@deepseek-ai\\dsh',
-  ];
+  );
   for (const c of candidates) {
     if (existsSync(c)) return c;
   }

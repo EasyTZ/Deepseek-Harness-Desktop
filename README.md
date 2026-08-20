@@ -1,162 +1,70 @@
-# DeepSeek Desktop
+# DeepSeek Harness Desktop
 
-以 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）为内核的 **Windows 桌面应用**。
+以 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（`dsh`）为内核的 Windows 桌面版 AI 编程助手。
 
-外壳用 Electron，内核直接复用现有的 `dsh web`，**不改 DSH 核心代码**。程序自包含 `node` 与完整 dsh 依赖树，目标机器**无需预装 Node.js 或 dsh**，双击即用。
-
-## ✨ 功能特性
-
-- **原生桌面窗口**：加载 dsh 的浏览器界面，脱离浏览器运行
-- **无边框 + 自定义标题栏**：DeepSeek 鲸鱼 logo，圆角可爱化样式
-- **自包含内核**：内置 `node.exe` + 完整 dsh 依赖树，开箱即用
-- **单实例**：重复启动自动聚焦已有窗口
-- **系统托盘**：关闭窗口最小化到托盘，双击/菜单唤出
-- **全局快捷键**：`Ctrl + Alt + Space` 显示 / 隐藏窗口
-- **优雅退出**：退出时清理 dsh 子进程树
-- **外部链接拦截**：非回环地址交给系统浏览器打开
-- **会话共享**：复用 `~/.dsh`，与 CLI / Web 版共享会话、凭据与设置
-- **余额查询**：每次对话后在回复下方显示 DeepSeek 账户余额
-- **系统通知**：任务完成 / 待确认时后台弹通知（窗口失焦时）
-
-## 📥 下载与安装
-
-到本仓库的 [Releases](../../releases) 页面下载最新版，两种形态任选其一：
-
-| 产物 | 用法 |
-|---|---|
-| `DeepSeek-Harness-Desktop-Setup-<版本>.exe` | **安装包（推荐）**：双击 → 选安装目录 → 装完从开始菜单 / 桌面快捷方式启动 |
-| `DeepSeek-Harness-Desktop-Portable-<版本>.zip` | **绿色版**：解压 zip，双击 `DeepSeek Harness Desktop.exe` 直接运行 |
-
-> 系统要求：Windows 10 / 11 x64。**无需预装 Node.js 或 dsh**，程序自包含内核，双击即用。
-
-## 🚀 使用指南
-
-### 首次使用
-
-1. 双击启动，窗口稍等几秒出现（首次要拉起本地服务）；
-2. 在 **设置 → 模型** 里配置 DeepSeek API Key（或手动写入 `~/.dsh/.credentials.yaml` 的 `DEEPSEEK_API_KEY`）。
-
-### 日常操作
-
-- **关闭窗口**：不会退出，而是最小化到**系统托盘**；右键托盘图标可「显示 / 隐藏」或「退出」；
-- **全局快捷键**：`Ctrl + Alt + Space` 随时显示 / 隐藏窗口；
-- **余额**：每次对话结束后，AI 回复下方会显示当前 DeepSeek 账户余额；
-- **系统通知**：窗口在后台时，任务完成 / 需要确认会弹系统通知，点通知即可回到窗口；
-- **会话共享**：与网页版 / CLI 版共享 `~/.dsh` 里的会话和凭据，换入口也能接着聊。
-
-### 常见问题
-
-- **窗口关闭后去哪了？** 在右下角系统托盘，点托盘图标即可找回。
-- **余额显示「查询失败」？** 检查是否已配置 `DEEPSEEK_API_KEY`。
+- 双击即用，**不需要装 Node.js、不需要懂命令行**；
+- 自带完整内核（`node` + `dsh`），拷到别的电脑也能跑。
 
 ---
 
-## 🧑‍💻 开发者文档
+## 📖 使用手册
 
-### 开发
+### 第一步：下载
 
-前置：Node.js ≥ 22、npm（首次会联网下载 Electron 二进制，国内可用 npmmirror 镜像，已写入 `.npmrc`）。
+1. 打开下载页面：`https://github.com/EasyTZ/Deepseek-Harness-Desktop/releases`
+2. 找到最新版本（数字最大的那个），下载**下面两个文件里任意一个**：
 
-```powershell
-npm install              # 安装依赖
-node scripts/gen-icon.mjs
-npm start                # 启动桌面应用
-```
+| 文件 | 选它的理由 |
+|---|---|
+| `DeepSeek-Harness-Desktop-Setup-x.x.x.exe` | **安装包**：装完有桌面图标，新手选这个 |
+| `DeepSeek-Harness-Desktop-Portable-x.x.x.zip` | **绿色版**：不用安装，解压即用，适合放 U 盘 |
 
-开发态默认调用本机已有的 dsh（`D:\nodejs\node_modules\@deepseek-ai\dsh`），可用环境变量覆盖：
+### 第二步：安装
 
-- `DSH_NODE_EXE` —— node 可执行文件路径（默认 `node`，走 PATH）
-- `DSH_BIN_JS` —— `dsh/lib/bin.js` 路径
+- **如果你下的是安装包**：双击那个 `.exe`，一路点「下一步」→「完成」。桌面会出现图标。
+- **如果你下的是绿色版**：右键那个 `.zip` →「全部解压」，打开解压出来的文件夹。
 
-### 开发者日常速查
+### 第三步：启动
 
-| 目的 | 怎么做 | 生效方式 |
-|---|---|---|
-| 开发调试 | `npm start` | 用本机 node+dsh，改源码后**重启进程**即生效，无需打包 |
-| 打包 | `npm run dist` | 产出安装包 + zip 到 `release/` |
-| 验证成品 | 双击 `dist\win-unpacked\DeepSeek Harness Desktop.exe` | 打包后的解包形态，免安装直跑 |
+- 双击「**DeepSeek Harness Desktop**」图标（桌面的，或绿色版文件夹里的 `DeepSeek Harness Desktop.exe`）。
+- 第一次启动会**等几秒**（它要在后台起一个本地服务），窗口弹出来就正常了。
 
-> 注意：正在运行的 `dist` 成品（`win-unpacked\DeepSeek Harness Desktop.exe`）是打包那一刻的**快照**，改 `src/` 源码对它无影响；要看到改动，要么用 `npm start` 重启，要么重新 `npm run dist` 后再运行新产物。
+### 第四步：配置 API Key（第一次必须做，否则不能对话）
 
-### 用独立 Web 版开发（agent 不会自杀）
+1. 点窗口**左下角**的「设置」按钮（齿轮图标）；
+2. 找到「模型」（或 Models）那一页；
+3. 填入你的 DeepSeek API Key（形如 `sk-xxxx`，去 `platform.deepseek.com` 申请）；
+4. 保存。
 
-当「agent 跑在桌面版里、又要开发桌面版」时，直接重启会杀掉 agent 自己的宿主进程。改用**独立的 Web 版**承载 agent，桌面版只当"被测试对象"——两者是不同进程、互不影响：
+> 没配 Key 也能打开窗口看界面，但发消息会失败，因为调用模型需要这个 Key。
 
-1. **宿主**（跑 agent、改代码）：`dsh web`（独立的网页版进程）
-2. **靶子**（看改动效果）：`npm start`（桌面版开发态）
+### 日常使用
 
-在宿主（Web 版）里清理 / 重启桌面版进程时，只影响桌面版，不伤 Web 版自己。
+- **关闭窗口 ≠ 退出**：点右上角 ✕ 只是缩到**右下角托盘**，程序还在后台；右键托盘图标可「退出」。
+- **快捷键**：按 `Ctrl + Alt + Space` 随时唤出 / 隐藏窗口。
+- **看余额**：每次对话结束后，AI 回复正下方会显示你 DeepSeek 账户的余额。
+- **系统通知**：窗口在后台时，任务跑完 / 需要你确认会弹通知，点通知回到窗口。
 
-> 桌面版 spawn 的内核进程会携带 `DSH_DESKTOP=1` 与 `DSH_DESKTOP_PARENT_PID=<electron 主进程 PID>` 标记，便于与 Web 版内核精确区分、避免误杀。
+### 常见问题
 
-### 构建与打包
+- **窗口关了找不到了？** → 看屏幕右下角托盘图标，点它。
+- **余额显示「查询失败」？** → 没配 API Key，回「设置 → 模型」填。
+- **双击没反应 / 报毒？** → 本程序没做代码签名，Windows 可能弹「未知发布者」，点「仍要运行」即可。
 
-```powershell
-npm run dist             # prepare-kernel → electron-builder → collect-release
-```
+---
 
-最终产物输出到 `release/`：
+## ✨ 功能特性
 
-- `DeepSeek-Harness-Desktop-Setup-<版本>.exe` —— 安装包
-- `DeepSeek-Harness-Desktop-Portable-<版本>.zip` —— 绿色版
+- 无边框窗口 + 自定义标题栏（DeepSeek 鲸鱼 logo）
+- 系统托盘、单实例、全局快捷键
+- 会话、文件、终端、搜索、子代理等完整 dsh 能力
+- 余额查询（每次对话后显示账户余额）
+- 系统通知（任务完成 / 待确认）
+- 浅色 / 深色 / 跟随系统主题
 
-`prepare-kernel` 从本机 dsh 安装目录拷贝 `node.exe` 与依赖树，可用 `DSH_NODE_EXE` / `DSH_INSTALL_DIR` 覆盖来源。
+---
 
-> 注意：内核的 `node_modules` 必须放在 `kernel/runtime/` 子目录里——electron-builder 会硬排除 `from` 根部的 `node_modules` 目录，但子目录里的不受影响。
-
-### 架构
-
-```
-┌─────────────────────────────────────────────┐
-│  Electron 外壳（主进程）                      │
-│  ├─ 拉起 dsh web 子进程（内置 node + dsh）    │
-│  ├─ 就绪检测后 loadURL 到本地回环地址          │
-│  └─ 单实例 / 托盘 / 全局快捷键 / 优雅退出       │
-└──────────────┬──────────────────────────────┘
-               │ http://127.0.0.1:<随机端口>
-               ▼
-          dsh web（自包含内核，原样复用）
-```
-
-外壳启动时挑一个空闲端口，`spawn` 内置的 `node.exe .../dsh/lib/bin.js web --port <port>`，轮询 HTTP 就绪后加载窗口。退出时 `taskkill /T /F` 整棵进程树。
-
-内核是**自包含**的：打包时把 `node.exe` 和完整 `@deepseek-ai/dsh` 依赖树一起塞进安装包（`resources/kernel/`），用户机器无需预装 Node 或 dsh。
-
-### 目录结构
-
-```
-dsDesktop/
-├── package.json              # 脚本与依赖（electron / electron-builder）
-├── electron-builder.yml      # 打包配置（NSIS + zip，自包含内核）
-├── src/
-│   ├── main/
-│   │   ├── index.js          # 应用入口：单实例、生命周期、IPC
-│   │   ├── dsh-service.js    # dsh 子进程托管：启动/就绪/退出
-│   │   ├── window.js         # BrowserWindow 创建与外部链接拦截
-│   │   ├── tray.js           # 系统托盘
-│   │   └── notifications.js  # 系统通知（任务完成/待确认）
-│   └── preload/index.js      # 标题栏注入 + 窗口控制桥接
-├── plugins/
-│   └── dsh-ui-balance/       # 余额查询插件（host 半 + client 半）
-├── scripts/
-│   ├── gen-icon.mjs          # 生成 build/icon.png 与 icon.ico
-│   ├── install-plugin.mjs    # 把插件装进开发态 dsh
-│   ├── prepare-kernel.mjs    # 暂存自包含内核到 kernel/
-│   └── collect-release.mjs   # 整理最终产物到 release/
-├── build/                    # 图标等构建资源
-├── kernel/                   # 暂存内核（gitignored，prepare-kernel 生成）
-├── dist/                     # 打包中间产物（gitignored）
-└── release/                  # 最终交付产物（gitignored）
-```
-
-## 🔭 后续可做
-
-- Codex 风格主题（需引入 pnpm + DSH 源码开发 client 插件）
-- 截图 / 图片输入（需等 DeepSeek 模型支持图片）
-- 内置浏览器（让 agent 可视化浏览网页）
-- 正式代码签名
-
-## 📝 版本更新记录
+## 📝 更新内容
 
 ### v1.0.0
 
@@ -169,6 +77,50 @@ dsDesktop/
 - 余额查询插件：每次对话后在回复下方显示 DeepSeek 账户余额
 - 系统通知：任务完成 / 待确认时后台弹系统通知（窗口失焦时）
 - 打包：NSIS 安装包 + zip 绿色版
+
+---
+
+## 🧑‍💻 开发
+
+仅开发者需要，普通用户跳过。
+
+### 前置条件
+
+1. 安装 [Node.js](https://nodejs.org) **≥ 22**（自带 npm）；
+2. 全局安装 DeepSeek Harness（开发态要用到本机 dsh）：
+
+```powershell
+npm install -g @deepseek-ai/dsh
+```
+
+> 国内网络下载慢，可先设镜像再装依赖：
+> ```powershell
+> $env:ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/"
+> $env:ELECTRON_BUILDER_BINARIES_MIRROR="https://npmmirror.com/mirrors/electron-builder-binaries/"
+> ```
+
+### 环境与运行
+
+```powershell
+npm install              # 装依赖（首次会下 Electron）
+node scripts/gen-icon.mjs # 生成图标
+npm start                # 开发态运行（用本机 dsh）
+```
+
+### 打包
+
+```powershell
+npm run install-plugin   # 先把余额插件装进开发态 dsh（一次性）
+npm run dist             # 产出安装包 + 绿色版到 release/
+```
+
+> 产物：`release/DeepSeek-Harness-Desktop-Setup-x.x.x.exe`（安装包）和 `DeepSeek-Harness-Desktop-Portable-x.x.x.zip`（绿色版）。
+
+### 架构（一句话）
+
+Electron 外壳 + 自包含 dsh 内核：外壳 `spawn` 内置的 `node.exe .../dsh/lib/bin.js web`，就绪后加载本地回环地址。自定义插件放在 `plugins/`，通过 `install-plugin` 装进 dsh。
+
+---
 
 ## License
 
