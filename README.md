@@ -71,6 +71,7 @@
 - 无边框窗口 + 自定义标题栏（DeepSeek 鲸鱼 logo，圆角可爱化样式）
 - 窗口控制按钮：最小化 / 最大化（含还原状态图标切换）/ 关闭，柔和配色
 - DeepSeek 官方鲸鱼图标（应用图标 + 系统托盘图标）
+- 放大开始菜单 / 任务栏 / 托盘图标：裁掉 logo 透明留白，鲸鱼填满图标画布
 - 应用更名：DeepSeek Harness Desktop
 - 系统托盘、单实例、全局快捷键（`Ctrl + Alt + Space`）
 - 自包含内核：内置 node + 完整 dsh 依赖树，无需预装 Node/dsh
@@ -103,9 +104,10 @@ npm install -g @deepseek-ai/dsh
 
 ```powershell
 npm install              # 装依赖（首次会下 Electron）
-node scripts/gen-icon.mjs # 生成图标
 npm start                # 开发态运行（用本机 dsh）
 ```
+
+> 应用图标（`build/icon.png`、`build/icon.ico`）已随仓库提交，**无需每次生成**；只有改了 `build/logo.svg` 才需要运行 `npm run icon` 重新生成。
 
 ### 打包
 

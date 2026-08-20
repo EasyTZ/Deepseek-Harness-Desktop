@@ -16,8 +16,9 @@ if (!existsSync(distDir)) {
 }
 
 const files = readdirSync(distDir);
-const setup = files.find((f) => /^DeepSeek-Harness-Desktop-Setup-.*\.exe$/.test(f));
-const zip = files.find((f) => f.endsWith('.zip'));
+// 按当前版本精确匹配，避免 dist 里残留的旧版本产物被误选。
+const setup = files.find((f) => /^DeepSeek-Harness-Desktop-Setup-.*\.exe$/.test(f) && f.endsWith(`-${version}.exe`));
+const zip = files.find((f) => f.endsWith(`-${version}-win.zip`));
 
 if (!setup) {
   console.error('[collect-release] 未找到安装包（DeepSeek-Harness-Desktop-Setup-*.exe）');
