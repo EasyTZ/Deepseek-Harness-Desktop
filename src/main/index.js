@@ -1,10 +1,12 @@
 'use strict';
 
 const { app, globalShortcut, ipcMain, dialog, Notification, shell } = require('electron');
+const fs = require('node:fs');
 const path = require('node:path');
 const { DshService } = require('./dsh-service');
 const { createMainWindow } = require('./window');
 const { createTray } = require('./tray');
+const { createSplashWindow } = require('./splash');
 const { TaskNotifications } = require('./notifications');
 
 const APP_ID = 'com.deepseek.desktop';
@@ -16,6 +18,7 @@ if (!gotLock) {
   app.setAppUserModelId(APP_ID);
 
   let win = null;
+  let splash = null;
   let tray = null;
   let dsh = null;
   let isQuitting = false;
@@ -28,6 +31,13 @@ if (!gotLock) {
     win.flashFrame(false);
   };
 
+  const closeSplash = () => {
+    if (splash && !splash.isDestroyed()) {
+      splash.destroy();
+    }
+    splash = null;
+  };
+
   /**
    * Windows 通知（toast）要求应用有一个指向它的开始菜单快捷方式，且快捷方式的
    * AppUserModelID 与 app.setAppUserModelId 一致。安装版由安装器创建；绿色版 /
@@ -37,6 +47,8 @@ if (!gotLock) {
     if (process.platform !== 'win32') return;
     try {
       const lnk = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'DeepSeek Harness Desktop.lnk');
+      // 已存在则跳过：每次启动重写 .lnk 会做一次磁盘 + shell 写，属启动路径上的冗余开销。
+      if (fs.existsSync(lnk)) return;
       shell.writeShortcutLink(lnk, 'replace', {
         target: process.execPath,
         appUserModelId: APP_ID,
@@ -62,6 +74,7 @@ if (!gotLock) {
   const quitApp = () => {
     isQuitting = true;
     globalShortcut.unregisterAll();
+    closeSplash();
     if (tray) {
       tray.destroy();
       tray = null;
@@ -86,11 +99,14 @@ if (!gotLock) {
             if (focused) win.flashFrame(false);
           }
         });
+        // 主窗口真正显示（首帧就绪）后再关闪屏，避免中间出现空白帧。
+        win.once('show', closeSplash);
         if (!tray) tray = createTray({ onShow: toggleWindow, onQuit: quitApp });
       }
     });
     dsh.on('error', (err) => {
       console.error('[app] dsh 错误:', err);
+      closeSplash();
       const msg = String(err && err.message ? err.message : err);
       if (!win) {
         dialog.showErrorBox('DeepSeek 启动失败', msg);
@@ -120,9 +136,14 @@ if (!gotLock) {
   ipcMain.on('window:maximize', () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
   ipcMain.on('window:close', () => win && win.close());
 
-  app.on('second-instance', () => showWindow());
+  app.on('second-instance', () => {
+    if (win && !win.isDestroyed()) showWindow();
+    else if (splash && !splash.isDestroyed()) splash.focus();
+  });
 
   app.whenReady().then(() => {
+    // 先弹闪屏给用户即时反馈，再并行做内核启动等耗时初始化。
+    splash = createSplashWindow();
     ensureStartMenuShortcut();
     globalShortcut.register('CommandOrControl+Alt+Space', toggleWindow);
     startDsh();
@@ -132,6 +153,7 @@ if (!gotLock) {
     isQuitting = true;
     globalShortcut.unregisterAll();
     notifications.stop();
+    closeSplash();
   });
 
   app.on('will-quit', (event) => {

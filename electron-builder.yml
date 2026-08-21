@@ -17,6 +17,9 @@ extraResources:
   - from: build/icon.png
     to: icon.png
 asar: true
+# 直接复用本机已安装的 Electron（node_modules/electron/dist），打包时不再下载
+# Electron 二进制、也不再联网校验 SHASUMS256.txt，实现「一次安装、反复打包」。
+electronDist: node_modules/electron/dist
 win:
   target:
     - target: nsis
