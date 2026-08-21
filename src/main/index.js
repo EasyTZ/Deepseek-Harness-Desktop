@@ -1,6 +1,7 @@
 'use strict';
 
-const { app, globalShortcut, ipcMain, dialog, Notification } = require('electron');
+const { app, globalShortcut, ipcMain, dialog, Notification, shell } = require('electron');
+const path = require('node:path');
 const { DshService } = require('./dsh-service');
 const { createMainWindow } = require('./window');
 const { createTray } = require('./tray');
@@ -24,9 +25,33 @@ if (!gotLock) {
     if (win.isMinimized()) win.restore();
     win.show();
     win.focus();
+    win.flashFrame(false);
   };
 
-  const notifications = new TaskNotifications({ logger: console, onActivate: showWindow });
+  /**
+   * Windows 通知（toast）要求应用有一个指向它的开始菜单快捷方式，且快捷方式的
+   * AppUserModelID 与 app.setAppUserModelId 一致。安装版由安装器创建；绿色版 /
+   * win-unpacked 没有，这里首次启动时补建一个，否则后台通知会静默丢失。
+   */
+  const ensureStartMenuShortcut = () => {
+    if (process.platform !== 'win32') return;
+    try {
+      const lnk = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'DeepSeek Harness Desktop.lnk');
+      shell.writeShortcutLink(lnk, 'replace', {
+        target: process.execPath,
+        appUserModelId: APP_ID,
+        description: 'DeepSeek Harness Desktop',
+      });
+    } catch (error) {
+      console.warn('[app] 创建开始菜单快捷方式失败:', error?.message ?? error);
+    }
+  };
+
+  const notifications = new TaskNotifications({
+    logger: console,
+    onActivate: showWindow,
+    onAttention: () => { if (win && !win.isDestroyed()) win.flashFrame(true); },
+  });
 
   const toggleWindow = () => {
     if (!win || win.isDestroyed()) return;
@@ -55,7 +80,11 @@ if (!gotLock) {
       } else {
         win = createMainWindow(url, {
           onCloseRequest,
-          onFocusChanged: (focused) => notifications.setFocused(focused)
+          onFocusChanged: (focused) => {
+            notifications.setFocused(focused);
+            // 窗口重新获得焦点即停止任务栏闪烁。
+            if (focused) win.flashFrame(false);
+          }
         });
         if (!tray) tray = createTray({ onShow: toggleWindow, onQuit: quitApp });
       }
@@ -94,6 +123,7 @@ if (!gotLock) {
   app.on('second-instance', () => showWindow());
 
   app.whenReady().then(() => {
+    ensureStartMenuShortcut();
     globalShortcut.register('CommandOrControl+Alt+Space', toggleWindow);
     startDsh();
   });
